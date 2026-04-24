@@ -54,9 +54,8 @@ public class AudioControllerPatch
             }
             else if (isWaveActive)
             {
-                //var waveNum = WavesController.instance.LastSpawnedWave;
-
-                audioLoaderInstance?.PlayMusic(MusicType.ActiveWave);
+                var curWaveTier = Traverse.Create(WavesController.instance).Field("WaveDefinition").Method("GetWaveTier", WavesController.instance.LastSpawnedWave).GetValue<int>();
+                audioLoaderInstance?.PlayMusic(MusicType.ActiveWave, curWaveTier);
             }
             else if (audioLoaderInstance != null && audioLoaderInstance.currentMusicType != MusicType.None && audioLoaderInstance.audioSource.isPlaying)
             {

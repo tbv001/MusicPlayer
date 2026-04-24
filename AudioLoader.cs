@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -83,87 +84,52 @@ public class AudioLoader : MonoBehaviour
         }
     }
 
-    public void PlayMusic(MusicType musicType)
+    private void ActuallyPlayMusic(string path, MusicType musicType)
+    {
+        if (File.Exists(path))
+        {
+            _targetVolume = 1f;
+            LoadAndPlay(path);
+            currentMusicType = musicType;
+        }
+        else
+        {
+            MusicPlayer.Logger.LogError($"Music not found at: {path}");
+        }
+    }
+
+    public void PlayMusic(MusicType musicType, int? waveTier = 1)
     {
         switch (musicType)
         {
             case MusicType.Menu:
                 var menuMusicPath = Path.Combine(_MUSIC_FOLDER, "Menu.mp3");
-
-                if (File.Exists(menuMusicPath))
-                {
-                    _targetVolume = 1f;
-                    LoadAndPlay(menuMusicPath);
-                    currentMusicType = MusicType.Menu;
-                }
-                else
-                {
-                    MusicPlayer.Logger.LogError($"Menu music not found at: {menuMusicPath}");
-                }
+                ActuallyPlayMusic(menuMusicPath, MusicType.Menu);
 
                 break;
 
             case MusicType.ActiveWave:
-                var waveMusicPath = Path.Combine(_MUSIC_FOLDER, "Wave.mp3");
-
-                if (File.Exists(waveMusicPath))
-                {
-                    _targetVolume = 1f;
-                    LoadAndPlay(waveMusicPath);
-                    currentMusicType = MusicType.ActiveWave;
-                }
-                else
-                {
-                    MusicPlayer.Logger.LogError($"Wave music not found at: {waveMusicPath}");
-                }
+                waveTier = Math.Clamp(waveTier ?? 1, 1, 3);
+                var waveMusicPath = Path.Combine(_MUSIC_FOLDER, $"Wave{waveTier}.mp3");
+                ActuallyPlayMusic(waveMusicPath, MusicType.ActiveWave);
 
                 break;
 
             case MusicType.BossRiot:
                 var riotBossMusicPath = Path.Combine(_MUSIC_FOLDER, "BossRiot.mp3");
-
-                if (File.Exists(riotBossMusicPath))
-                {
-                    _targetVolume = 1f;
-                    LoadAndPlay(riotBossMusicPath);
-                    currentMusicType = MusicType.BossRiot;
-                }
-                else
-                {
-                    MusicPlayer.Logger.LogError($"Riot Boss music not found at: {riotBossMusicPath}");
-                }
+                ActuallyPlayMusic(riotBossMusicPath, MusicType.BossRiot);
 
                 break;
 
             case MusicType.BossQueen:
                 var queenBossMusicPath = Path.Combine(_MUSIC_FOLDER, "BossQueen.mp3");
-
-                if (File.Exists(queenBossMusicPath))
-                {
-                    _targetVolume = 1f;
-                    LoadAndPlay(queenBossMusicPath);
-                    currentMusicType = MusicType.BossQueen;
-                }
-                else
-                {
-                    MusicPlayer.Logger.LogError($"Queen Boss music not found at: {queenBossMusicPath}");
-                }
+                ActuallyPlayMusic(queenBossMusicPath, MusicType.BossQueen);
 
                 break;
 
             case MusicType.BossReaper:
                 var reaperBossMusicPath = Path.Combine(_MUSIC_FOLDER, "BossReaper.mp3");
-
-                if (File.Exists(reaperBossMusicPath))
-                {
-                    _targetVolume = 1f;
-                    LoadAndPlay(reaperBossMusicPath);
-                    currentMusicType = MusicType.BossReaper;
-                }
-                else
-                {
-                    MusicPlayer.Logger.LogError($"Reaper Boss music not found at: {reaperBossMusicPath}");
-                }
+                ActuallyPlayMusic(reaperBossMusicPath, MusicType.BossReaper);
 
                 break;
 
