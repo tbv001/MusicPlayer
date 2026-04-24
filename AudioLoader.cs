@@ -6,12 +6,19 @@ using UnityEngine.Networking;
 
 namespace MusicPlayer;
 
+public enum MusicType
+{
+    None,
+    Menu
+}
+
 public class AudioLoader : MonoBehaviour
 {
     private readonly string _musicFolder = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Music");
     private const float _fadeSpeed = 1f;
     public static AudioLoader Instance { get; private set; }
     public AudioSource audioSource;
+    public MusicType currentMusicType = MusicType.None;
     private string _currentPlayingPath;
     private float _targetVolume = 1f;
 
@@ -72,23 +79,35 @@ public class AudioLoader : MonoBehaviour
         }
     }
 
-    public void PlayMenuMusic()
+    public void PlayMusic(MusicType musicType)
     {
-        var menuMusicPath = Path.Combine(_musicFolder, "Menu.mp3");
+        switch (musicType)
+        {
+            case MusicType.Menu:
+                var menuMusicPath = Path.Combine(_musicFolder, "Menu.mp3");
 
-        if (File.Exists(menuMusicPath))
-        {
-            _targetVolume = 1f;
-            LoadAndPlay(menuMusicPath);
-        }
-        else
-        {
-            MusicPlayer.Logger.LogError($"Menu music not found at: {menuMusicPath}");
+                if (File.Exists(menuMusicPath))
+                {
+                    _targetVolume = 1f;
+                    LoadAndPlay(menuMusicPath);
+                    currentMusicType = MusicType.Menu;
+                }
+                else
+                {
+                    MusicPlayer.Logger.LogError($"Menu music not found at: {menuMusicPath}");
+                }
+
+                break;
+
+            default:
+                MusicPlayer.Logger.LogError($"Got: {musicType}. Did you forget something?");
+                break;
         }
     }
 
     public void StopMusic()
     {
+        currentMusicType = MusicType.None;
         _targetVolume = 0f;
     }
 }
