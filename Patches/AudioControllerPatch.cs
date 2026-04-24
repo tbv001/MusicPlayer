@@ -25,6 +25,43 @@ public class AudioControllerPatch
             {
                 AudioLoader.Instance.StopMusic();
             }
+
+            var audioLoaderInstance = AudioLoader.Instance;
+            var isWaveActive = WavesController.instance.HaveToKillZombies;
+            var isBossActive = BossfightController.IsBossActive;
+
+            if (isBossActive)
+            {
+                var currentBoss = BossfightController.instance.GetZombieTypeForTier(WavesController.instance.CurrentlyEnabledBossTier);
+                switch (currentBoss)
+                {
+                    case ZombieType.BossRiot:
+                        audioLoaderInstance?.PlayMusic(MusicType.BossRiot);
+                        break;
+                        
+                    case ZombieType.BossQueen:
+                        audioLoaderInstance?.PlayMusic(MusicType.BossQueen);
+                        break;
+
+                    case ZombieType.BossReaper:
+                        audioLoaderInstance?.PlayMusic(MusicType.BossReaper);
+                        break;
+                    
+                    default:
+                        audioLoaderInstance?.StopMusic();
+                        break;
+                }
+            }
+            else if (isWaveActive)
+            {
+                //var waveNum = WavesController.instance.LastSpawnedWave;
+
+                audioLoaderInstance?.PlayMusic(MusicType.ActiveWave);
+            }
+            else if (audioLoaderInstance != null && audioLoaderInstance.currentMusicType != MusicType.None && audioLoaderInstance.audioSource.isPlaying)
+            {
+                audioLoaderInstance.StopMusic();
+            }
         }
     }
 }

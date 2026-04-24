@@ -12,7 +12,7 @@ public class MusicPlayer : BaseUnityPlugin
     internal static new ManualLogSource Logger;
     public const string PLUGIN_GUID = "com.theblackvoid.musicplayer";
     public const string PLUGIN_NAME = "Music Player";
-    public const string PLUGIN_VERSION = "0.1.0";
+    public const string PLUGIN_VERSION = "0.5.0";
     public Harmony HarmonyInstance = new Harmony(PLUGIN_GUID);
     
     private void Awake()
