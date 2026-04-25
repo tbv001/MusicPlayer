@@ -19,13 +19,14 @@ public enum MusicType
 
 public class AudioLoader : MonoBehaviour
 {
-    private readonly string _MUSIC_FOLDER = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Music");
-    private const float _FADE_SPEED = 1f;
+    private readonly string _musicFolder = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Music");
+    private const float _fadeSpeed = 1f;
     public static AudioLoader Instance { get; private set; }
     public AudioSource audioSource;
     public MusicType currentMusicType = MusicType.None;
     private string _currentPlayingPath;
     private float _targetVolume = 1f;
+    private float _maxVolume = 1f;
 
     private void Awake()
     {
@@ -40,9 +41,18 @@ public class AudioLoader : MonoBehaviour
 
     private void Update()
     {
+        if (PersistenceController.instance?.soundsMenu?.saveAudio == null)
+        {
+            return;
+        }
+
+        var masterVolumeGame = PersistenceController.instance.soundsMenu.saveAudio.master / 100f;
+        var musicVolumeCfg = MusicPlayer.musicVolume / 100f;
+        _maxVolume = masterVolumeGame * musicVolumeCfg;
+
         if (audioSource != null)
         {
-            audioSource.volume = Mathf.MoveTowards(audioSource.volume, _targetVolume, Time.deltaTime * _FADE_SPEED);
+            audioSource.volume = Mathf.MoveTowards(audioSource.volume, _targetVolume * _maxVolume, Time.deltaTime * _fadeSpeed);
             
             if (_targetVolume <= 0f && audioSource.volume <= 0f && audioSource.isPlaying)
             {
@@ -103,32 +113,32 @@ public class AudioLoader : MonoBehaviour
         switch (musicType)
         {
             case MusicType.Menu:
-                var menuMusicPath = Path.Combine(_MUSIC_FOLDER, "Menu.mp3");
+                var menuMusicPath = Path.Combine(_musicFolder, "Menu.mp3");
                 ActuallyPlayMusic(menuMusicPath, MusicType.Menu);
 
                 break;
 
             case MusicType.ActiveWave:
                 waveTier = Math.Clamp(waveTier ?? 1, 1, 3);
-                var waveMusicPath = Path.Combine(_MUSIC_FOLDER, $"Wave{waveTier}.mp3");
+                var waveMusicPath = Path.Combine(_musicFolder, $"Wave{waveTier}.mp3");
                 ActuallyPlayMusic(waveMusicPath, MusicType.ActiveWave);
 
                 break;
 
             case MusicType.BossRiot:
-                var riotBossMusicPath = Path.Combine(_MUSIC_FOLDER, "BossRiot.mp3");
+                var riotBossMusicPath = Path.Combine(_musicFolder, "BossRiot.mp3");
                 ActuallyPlayMusic(riotBossMusicPath, MusicType.BossRiot);
 
                 break;
 
             case MusicType.BossQueen:
-                var queenBossMusicPath = Path.Combine(_MUSIC_FOLDER, "BossQueen.mp3");
+                var queenBossMusicPath = Path.Combine(_musicFolder, "BossQueen.mp3");
                 ActuallyPlayMusic(queenBossMusicPath, MusicType.BossQueen);
 
                 break;
 
             case MusicType.BossReaper:
-                var reaperBossMusicPath = Path.Combine(_MUSIC_FOLDER, "BossReaper.mp3");
+                var reaperBossMusicPath = Path.Combine(_musicFolder, "BossReaper.mp3");
                 ActuallyPlayMusic(reaperBossMusicPath, MusicType.BossReaper);
 
                 break;

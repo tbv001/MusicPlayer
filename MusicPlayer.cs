@@ -1,6 +1,7 @@
 using System;
 using System.Reflection;
 using BepInEx;
+using BepInEx.Configuration;
 using BepInEx.Logging;
 using HarmonyLib;
 
@@ -12,14 +13,18 @@ public class MusicPlayer : BaseUnityPlugin
     internal static new ManualLogSource Logger;
     public const string PLUGIN_GUID = "com.theblackvoid.musicplayer";
     public const string PLUGIN_NAME = "Music Player";
-    public const string PLUGIN_VERSION = "0.5.0";
+    public const string PLUGIN_VERSION = "1.0.0";
     public Harmony HarmonyInstance = new Harmony(PLUGIN_GUID);
+    public static int musicVolume = 100;
     
     private void Awake()
     {
         Logger = base.Logger;
         try
         {
+            ConfigEntry<int> musicVolumeConfig = Config.Bind("Settings", "Music Volume", 100, new ConfigDescription("Sets the music volume.", new AcceptableValueRange<int>(0, 100)));
+            musicVolume = musicVolumeConfig.Value;
+
             gameObject.AddComponent<AudioLoader>();
             HarmonyInstance.PatchAll(Assembly.GetExecutingAssembly());
             Logger.LogInfo($"Successfully loaded!");
