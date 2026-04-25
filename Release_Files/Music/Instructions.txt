@@ -1,0 +1,9 @@
+Place your .mp3 files here and rename them according to the list below:
+
+- Menu.mp3		-- Plays in the main menu.
+- Wave1.mp3		-- Plays during Tier 1 zumbie waves (before killing Riot).
+- Wave2.mp3		-- Plays during Tier 2 zumbie waves (after killing Riot).
+- Wave3.mp3		-- Plays during Tier 3 zumbie waves (after killing Queen).
+- BossRiot.mp3		-- Plays during the Riot Zumbie boss fight.
+- BossQueen.mp3		-- Plays during the Queen Zumbie boss fight.
+- BossReaper.mp3	-- Plays during the Reaper Zumbie boss fight.
