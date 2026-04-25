@@ -22,7 +22,7 @@ public class MusicPlayer : BaseUnityPlugin
         Logger = base.Logger;
         try
         {
-            ConfigEntry<int> musicVolumeConfig = Config.Bind("Settings", "Music Volume", 100, new ConfigDescription("Sets the music volume.", new AcceptableValueRange<int>(0, 100)));
+            ConfigEntry<int> musicVolumeConfig = Config.Bind("Settings", "Music Volume", 50, new ConfigDescription("Sets the music volume.", new AcceptableValueRange<int>(0, 100)));
             musicVolume = musicVolumeConfig.Value;
 
             gameObject.AddComponent<AudioLoader>();

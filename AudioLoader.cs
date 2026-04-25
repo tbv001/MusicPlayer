@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -20,6 +21,7 @@ public enum MusicType
 public class AudioLoader : MonoBehaviour
 {
     private readonly string _musicFolder = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Music");
+    private readonly Dictionary<string, AudioClip> _audioCache = new();
     private const float _fadeSpeed = 1f;
     public static AudioLoader Instance { get; private set; }
     public AudioSource audioSource;
@@ -28,7 +30,7 @@ public class AudioLoader : MonoBehaviour
     private float _targetVolume = 1f;
     private float _maxVolume = 1f;
 
-    private void Awake()
+    private async void Awake()
     {
         Instance = this;
         if (audioSource == null)
@@ -37,6 +39,20 @@ public class AudioLoader : MonoBehaviour
         }
         audioSource.loop = true;
         audioSource.volume = 0f;
+
+        if (Directory.Exists(_musicFolder))
+        {
+            var files = Directory.GetFiles(_musicFolder, "*.mp3");
+            foreach (var file in files)
+            {
+                var clip = await LoadAudioClip(file);
+                if (clip != null)
+                {
+                    _audioCache[file] = clip;
+                    MusicPlayer.Logger.LogInfo($"Cached audio: {file}");
+                }
+            }
+        }
     }
 
     private void Update()
@@ -61,16 +77,36 @@ public class AudioLoader : MonoBehaviour
         }
     }
 
-    private async void LoadAndPlay(string filePath)
+    private void LoadAndPlay(string filePath)
     {
-        if (_currentPlayingPath == filePath && audioSource.isPlaying) return;
+        if (_currentPlayingPath == filePath && (audioSource.isPlaying || _audioCache.ContainsKey(filePath) == false)) return;
 
-        var clip = await LoadAudioClip(filePath);
-        if (clip != null)
+        if (_audioCache.TryGetValue(filePath, out var clip))
         {
             audioSource.clip = clip;
             if (!audioSource.isPlaying) audioSource.Play();
             _currentPlayingPath = filePath;
+        }
+        else
+        {
+            _currentPlayingPath = filePath;
+            MusicPlayer.Logger.LogWarning($"Audio clip not found in cache: {filePath}. Attempting on-demand load.");
+            LoadAndPlayOnDemand(filePath);
+        }
+    }
+
+    private async void LoadAndPlayOnDemand(string filePath)
+    {
+        var clip = await LoadAudioClip(filePath);
+        if (clip != null)
+        {
+            _audioCache[filePath] = clip;
+            
+            if (_currentPlayingPath == filePath)
+            {
+                audioSource.clip = clip;
+                if (!audioSource.isPlaying) audioSource.Play();
+            }
         }
     }
 
@@ -96,14 +132,23 @@ public class AudioLoader : MonoBehaviour
 
     private void ActuallyPlayMusic(string path, MusicType musicType)
     {
+        if (currentMusicType == musicType && _currentPlayingPath == path)
+        {
+            _targetVolume = 1f;
+            return;
+        }
+
+        currentMusicType = musicType;
+
         if (File.Exists(path))
         {
             _targetVolume = 1f;
             LoadAndPlay(path);
-            currentMusicType = musicType;
         }
         else
         {
+            _currentPlayingPath = path;
+            _targetVolume = 0f;
             MusicPlayer.Logger.LogError($"Music not found at: {path}");
         }
     }
