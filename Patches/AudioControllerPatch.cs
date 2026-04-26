@@ -14,14 +14,14 @@ public class AudioControllerPatch
             __instance.ambientTargetVolume[0] = 0f;
             __instance.ambientSource[0].volume = 0f;
 
-            if (AudioLoader.Instance != null && AudioLoader.Instance.currentMusicType != MusicType.Menu && !AudioLoader.Instance.audioSource.isPlaying)
+            if (AudioLoader.Instance != null && AudioLoader.Instance.currentMusicType != MusicType.Menu)
             {
                 AudioLoader.Instance.PlayMusic(MusicType.Menu);
             }
         }
         else
         {
-            if (AudioLoader.Instance != null && AudioLoader.Instance.currentMusicType == MusicType.Menu && AudioLoader.Instance.audioSource.isPlaying)
+            if (AudioLoader.Instance != null && AudioLoader.Instance.currentMusicType == MusicType.Menu)
             {
                 AudioLoader.Instance.StopMusic();
             }
