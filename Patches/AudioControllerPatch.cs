@@ -28,11 +28,11 @@ public class AudioControllerPatch
 
             var audioLoaderInstance = AudioLoader.Instance;
             var isWaveActive = WavesController.instance.HaveToKillZombies;
-            var isBossActive = BossfightController.IsBossActive;
+            var activeBoss = GetHighestTierActiveBoss();
 
-            if (isBossActive)
+            if (activeBoss != null)
             {
-                var currentBoss = BossfightController.instance.GetZombieTypeForTier(WavesController.instance.CurrentlyEnabledBossTier);
+                var currentBoss = activeBoss.identity.type;
                 switch (currentBoss)
                 {
                     case ZombieType.BossRiot:
@@ -62,5 +62,31 @@ public class AudioControllerPatch
                 audioLoaderInstance.StopMusic();
             }
         }
+    }
+
+    private static Zombie GetHighestTierActiveBoss()
+    {
+        if (ZombieLoader.Instance == null || BossfightController.instance == null || ZombieController.instance == null) return null;
+        if (!BossfightController.IsBossActive && !ZombieController.instance.respawningBossExists) return null;
+
+        Zombie highestTierBoss = null;
+        int maxTier = -1;
+
+        var zombies = ZombieLoader.Instance.zombies;
+        for (int i = 0; i < zombies.Count; i++)
+        {
+            var zombie = zombies[i];
+            if (zombie.IsBoss && zombie.health.isAlive)
+            {
+                int tier = BossfightController.instance.GetBossTier(zombie.identity.type);
+                if (tier > maxTier)
+                {
+                    maxTier = tier;
+                    highestTierBoss = zombie;
+                }
+            }
+        }
+
+        return highestTierBoss;
     }
 }
