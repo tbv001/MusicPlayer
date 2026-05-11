@@ -4,8 +4,8 @@ A [BepInEx](https://github.com/BepInEx/BepInEx) 5 plugin for **Zumbi Blocks 2** 
 
 ## Features
 
-- **Customizable Music**: Play your own `.mp3` files during gameplay.
-- **Configurable Volume**: Adjust custom music volume directly from the BepInEx configuration.
+- Play your own `.mp3` music files during various states in the game.
+- Music volume is configurable directly from the BepInEx configuration file.
 
 ## Installation
 
