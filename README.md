@@ -1,11 +1,11 @@
 # Music Player
 
-A [BepInEx](https://github.com/BepInEx/BepInEx) 5 plugin for **Zumbi Blocks 2** that allows players to add custom music for various game states (Menu, Active Waves, and Boss Fights).
+**Music Player** is a mod for **Zumbi Blocks 2** that allows players to add custom music for various game states (Menu, Active Waves, and Boss Fights).
 
 ## Features
 
-- Play your own `.mp3` music files during various states in the game.
-- Music volume is configurable directly from the BepInEx configuration file.
+- Play your own `.mp3` music files during gameplay.
+- Adjust the music volume through the BepInEx configuration file.
 
 ## Installation
 
@@ -17,7 +17,7 @@ Zumbi Blocks 2 Open Alpha\BepInEx\plugins\MusicPlayer
 
 ## Usage
 
-The plugin looks for specific filenames in the `Music` folder:
+The plugin looks for specific filenames in the mod's `Music` folder:
 
 | Game State | Expected Filename |
 | :--- | :--- |
@@ -31,7 +31,7 @@ The plugin looks for specific filenames in the `Music` folder:
 
 ## Configuration
 
-On first launch, a configuration file is generated at:
+On first launch with the mod installed, a configuration file is generated at:
 
 ```
 Zumbi Blocks 2 Open Alpha\BepInEx\config\com.theblackvoid.musicplayer.cfg
