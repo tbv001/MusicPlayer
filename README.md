@@ -9,7 +9,9 @@
 
 ## Installation
 
-Download the latest version of the plugin at the [releases](https://github.com/tbv001/MusicPlayer/releases) page, and then copy the contents of the zip file into your BepInEx `plugins` folder:
+1. Make sure you have the latest version of **BepInEx 5** installed.
+2. Download the latest version of the mod at the [releases](https://github.com/tbv001/ZB2.MusicPlayer/releases) page.
+3. Copy the contents of the zip file into the `plugins` folder of your BepInEx installation:
 
 ```
 Zumbi Blocks 2 Open Alpha\BepInEx\plugins\MusicPlayer
