@@ -1,6 +1,7 @@
 using HarmonyLib;
+using MusicPlayer.Components;
 
-namespace MusicPlayer;
+namespace MusicPlayer.Patches;
 
 [HarmonyPatch(typeof(AudioController))]
 public class AudioControllerPatch
@@ -14,14 +15,14 @@ public class AudioControllerPatch
             __instance.ambientTargetVolume[0] = 0f;
             __instance.ambientSource[0].volume = 0f;
 
-            if (AudioLoader.Instance != null && AudioLoader.Instance.currentMusicType != MusicType.Menu)
+            if (AudioLoader.Instance != null && AudioLoader.Instance.CurrentMusicType != MusicType.Menu)
             {
                 AudioLoader.Instance.PlayMusic(MusicType.Menu);
             }
         }
         else
         {
-            if (AudioLoader.Instance != null && AudioLoader.Instance.currentMusicType == MusicType.Menu)
+            if (AudioLoader.Instance != null && AudioLoader.Instance.CurrentMusicType == MusicType.Menu)
             {
                 AudioLoader.Instance.StopMusic();
             }
@@ -38,7 +39,7 @@ public class AudioControllerPatch
                     case ZombieType.BossRiot:
                         audioLoaderInstance?.PlayMusic(MusicType.BossRiot);
                         break;
-                        
+
                     case ZombieType.BossQueen:
                         audioLoaderInstance?.PlayMusic(MusicType.BossQueen);
                         break;
@@ -46,7 +47,7 @@ public class AudioControllerPatch
                     case ZombieType.BossReaper:
                         audioLoaderInstance?.PlayMusic(MusicType.BossReaper);
                         break;
-                    
+
                     default:
                         audioLoaderInstance?.StopMusic();
                         break;
@@ -54,10 +55,12 @@ public class AudioControllerPatch
             }
             else if (isWaveActive)
             {
-                var curWaveTier = Traverse.Create(WavesController.instance).Field("WaveDefinition").Method("GetWaveTier", WavesController.instance.LastSpawnedWave).GetValue<int>();
+                var curWaveTier = Traverse.Create(WavesController.instance).Field("WaveDefinition")
+                    .Method("GetWaveTier", WavesController.instance.LastSpawnedWave).GetValue<int>();
                 audioLoaderInstance?.PlayMusic(MusicType.ActiveWave, curWaveTier);
             }
-            else if (audioLoaderInstance != null && audioLoaderInstance.currentMusicType != MusicType.None && audioLoaderInstance.audioSource.isPlaying)
+            else if (audioLoaderInstance != null && audioLoaderInstance.CurrentMusicType != MusicType.None &&
+                     audioLoaderInstance.AudioSource.isPlaying)
             {
                 audioLoaderInstance.StopMusic();
             }
@@ -66,16 +69,16 @@ public class AudioControllerPatch
 
     private static Zombie GetHighestTierActiveBoss()
     {
-        if (ZombieLoader.Instance == null || BossfightController.instance == null || ZombieController.instance == null) return null;
+        if (ZombieLoader.Instance == null || BossfightController.instance == null ||
+            ZombieController.instance == null) return null;
         if (!BossfightController.IsBossActive && !ZombieController.instance.respawningBossExists) return null;
 
         Zombie highestTierBoss = null;
-        int maxTier = -1;
+        var maxTier = -1;
 
         var zombies = ZombieLoader.Instance.zombies;
-        for (int i = 0; i < zombies.Count; i++)
+        foreach (var zombie in zombies)
         {
-            var zombie = zombies[i];
             if (zombie.IsBoss && zombie.health.isAlive)
             {
                 int tier = BossfightController.instance.GetBossTier(zombie.identity.type);

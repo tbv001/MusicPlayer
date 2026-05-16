@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Networking;
 
-namespace MusicPlayer;
+namespace MusicPlayer.Components;
 
 public enum MusicType
 {
@@ -20,38 +20,48 @@ public enum MusicType
 
 public class AudioLoader : MonoBehaviour
 {
-    private readonly string _musicFolder = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Music");
+    private readonly string _musicFolder =
+        Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? "", "Music");
+
     private readonly Dictionary<string, AudioClip> _audioCache = new();
-    private const float _fadeSpeed = 1f;
+    private const float FadeSpeed = 1f;
     public static AudioLoader Instance { get; private set; }
-    public AudioSource audioSource;
-    public MusicType currentMusicType = MusicType.None;
+    public AudioSource AudioSource;
+    public MusicType CurrentMusicType = MusicType.None;
     private string _currentPlayingPath;
     private float _targetVolume = 1f;
     private float _maxVolume = 1f;
 
     private async void Awake()
     {
-        Instance = this;
-        if (audioSource == null)
+        try
         {
-            audioSource = gameObject.AddComponent<AudioSource>();
-        }
-        audioSource.loop = true;
-        audioSource.volume = 0f;
-
-        if (Directory.Exists(_musicFolder))
-        {
-            var files = Directory.GetFiles(_musicFolder, "*.mp3");
-            foreach (var file in files)
+            Instance = this;
+            if (AudioSource == null)
             {
-                var clip = await LoadAudioClip(file);
-                if (clip != null)
+                AudioSource = gameObject.AddComponent<AudioSource>();
+            }
+
+            AudioSource.loop = true;
+            AudioSource.volume = 0f;
+
+            if (Directory.Exists(_musicFolder))
+            {
+                var files = Directory.GetFiles(_musicFolder, "*.mp3");
+                foreach (var file in files)
                 {
-                    _audioCache[file] = clip;
-                    MusicPlayer.Logger.LogInfo($"Cached audio: {file}");
+                    var clip = await LoadAudioClip(file);
+                    if (clip != null)
+                    {
+                        _audioCache[file] = clip;
+                        MusicPlayer.Logger.LogInfo($"Cached audio: {file}");
+                    }
                 }
             }
+        }
+        catch (Exception ex)
+        {
+            MusicPlayer.Logger.LogError($"Awake() error: {ex}");
         }
     }
 
@@ -63,28 +73,30 @@ public class AudioLoader : MonoBehaviour
         }
 
         var masterVolumeGame = PersistenceController.instance.soundsMenu.saveAudio.master / 100f;
-        var musicVolumeCfg = MusicPlayer.musicVolume / 100f;
+        var musicVolumeCfg = MusicPlayer.MusicVolume / 100f;
         _maxVolume = masterVolumeGame * musicVolumeCfg;
 
-        if (audioSource != null)
+        if (AudioSource != null)
         {
-            audioSource.volume = Mathf.MoveTowards(audioSource.volume, _targetVolume * _maxVolume, Time.deltaTime * _fadeSpeed);
-            
-            if (_targetVolume <= 0f && audioSource.volume <= 0f && audioSource.isPlaying)
+            AudioSource.volume =
+                Mathf.MoveTowards(AudioSource.volume, _targetVolume * _maxVolume, Time.deltaTime * FadeSpeed);
+
+            if (_targetVolume <= 0f && AudioSource.volume <= 0f && AudioSource.isPlaying)
             {
-                audioSource.Stop();
+                AudioSource.Stop();
             }
         }
     }
 
     private void LoadAndPlay(string filePath)
     {
-        if (_currentPlayingPath == filePath && (audioSource.isPlaying || _audioCache.ContainsKey(filePath) == false)) return;
+        if (_currentPlayingPath == filePath &&
+            (AudioSource.isPlaying || !_audioCache.ContainsKey(filePath))) return;
 
         if (_audioCache.TryGetValue(filePath, out var clip))
         {
-            audioSource.clip = clip;
-            if (!audioSource.isPlaying) audioSource.Play();
+            AudioSource.clip = clip;
+            if (!AudioSource.isPlaying) AudioSource.Play();
             _currentPlayingPath = filePath;
         }
         else
@@ -97,16 +109,23 @@ public class AudioLoader : MonoBehaviour
 
     private async void LoadAndPlayOnDemand(string filePath)
     {
-        var clip = await LoadAudioClip(filePath);
-        if (clip != null)
+        try
         {
-            _audioCache[filePath] = clip;
-            
-            if (_currentPlayingPath == filePath)
+            var clip = await LoadAudioClip(filePath);
+            if (clip != null)
             {
-                audioSource.clip = clip;
-                if (!audioSource.isPlaying) audioSource.Play();
+                _audioCache[filePath] = clip;
+
+                if (_currentPlayingPath == filePath)
+                {
+                    AudioSource.clip = clip;
+                    if (!AudioSource.isPlaying) AudioSource.Play();
+                }
             }
+        }
+        catch (Exception ex)
+        {
+            MusicPlayer.Logger.LogError($"LoadAndPlayOnDemand() error: {ex}");
         }
     }
 
@@ -114,31 +133,27 @@ public class AudioLoader : MonoBehaviour
     {
         var uri = "file://" + path;
 
-        using (UnityWebRequest www = UnityWebRequestMultimedia.GetAudioClip(uri, AudioType.MPEG))
-        {
-            await www.SendWebRequest();
+        using UnityWebRequest www = UnityWebRequestMultimedia.GetAudioClip(uri, AudioType.MPEG);
+        await www.SendWebRequest();
 
-            if (www.result == UnityWebRequest.Result.Success)
-            {
-                return DownloadHandlerAudioClip.GetContent(www);
-            }
-            else
-            {
-                MusicPlayer.Logger.LogError($"Failed to load audio: {www.error}");
-                return null;
-            }
+        if (www.result == UnityWebRequest.Result.Success)
+        {
+            return DownloadHandlerAudioClip.GetContent(www);
         }
+
+        MusicPlayer.Logger.LogError($"Failed to load audio: {www.error}");
+        return null;
     }
 
     private void ActuallyPlayMusic(string path, MusicType musicType)
     {
-        if (currentMusicType == musicType && _currentPlayingPath == path)
+        if (CurrentMusicType == musicType && _currentPlayingPath == path)
         {
             _targetVolume = 1f;
             return;
         }
 
-        currentMusicType = musicType;
+        CurrentMusicType = musicType;
 
         if (File.Exists(path))
         {
@@ -196,7 +211,7 @@ public class AudioLoader : MonoBehaviour
 
     public void StopMusic()
     {
-        currentMusicType = MusicType.None;
+        CurrentMusicType = MusicType.None;
         _targetVolume = 0f;
     }
 }
